@@ -1,0 +1,30 @@
+{
+  "name": "kelp-static",
+  "version": "1.0.0",
+  "description": "serve static files for kelp",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "author": "lsong",
+  "license": "MIT",
+  "keywords": [
+    "kelp",
+    "static"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/song940/kelp-static.git"
+  },
+  "bugs": {
+    "url": "https://github.com/song940/kelp-static/issues"
+  },
+  "homepage": "https://github.com/song940/kelp-static#readme",
+  "devDependencies": {
+    "kelp": "*",
+    "kelp-logger": "*"
+  },
+  "dependencies": {
+    "mime": "*"
+  }
+}
