@@ -25,21 +25,26 @@ module.exports = function KelpStatic(root, options){
    * @return {[type]}        [description]
    */
   return function(req, res, next){
-    var filename = url.parse(req.url).pathname;
+    var filename = decodeURIComponent(url.parse(req.url).pathname);
     if(filename.endsWith('/')) filename += options.index;
     filename = path.join(path.resolve(root), filename);
     fs.stat(filename, function(err, stat){
-      if(err) return next();
+      if(err) return next(err);
       if(stat.isDirectory()){
         res.writeHead(301, {
           'Location': req.url + '/'
         });
         return res.end();
       }
+      if(new Date(req.headers['if-modified-since']) - stat.mtime == 0){
+        res.writeHead(304);
+        return res.end();
+      }
       var type = mime.lookup(filename);
       var charset = mime.charsets.lookup(type);
-      res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
+      res.setHeader('Last-Modified', stat.mtime);
       res.setHeader('Content-Length', stat.size);
+      res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
       fs.createReadStream(filename).pipe(res);
     });
   };
