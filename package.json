@@ -1,10 +1,13 @@
 {
   "name": "kelp-static",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "serve static files for kelp",
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js"
+  },
+  "bin":{
+    "kelp-static": "bin/server.js"
   },
   "author": "lsong",
   "license": "MIT",
