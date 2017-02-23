@@ -32,6 +32,7 @@ module.exports = function KelpStatic(root, options){
       if(err) return next(err);
       if(stat.isDirectory()){
         if(options.index === true)
+          res.setHeader('Content-Type', 'text/html');
           return renderDirectory(filename, res.end);
         res.writeHead(301, {
           'Location': req.url + '/'
