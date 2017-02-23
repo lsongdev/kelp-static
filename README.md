@@ -5,14 +5,14 @@ serve static files for kelp
 ### Installation
 
 ````
-$ npm install kelp-static --save
+$ npm install [-g] kelp-static --save
 ````
 
 ### Example
 ````javascript
-const http = require('http');
-const kelp = require('kelp');
-const serve= require('kelp-static');
+const http  = require('http');
+const kelp  = require('kelp');
+const serve = require('kelp-static');
 
 const app = kelp();
 

@@ -6,6 +6,8 @@ const serve= require('../');
 const app = kelp();
 
 app.use(logs)
-app.use(serve(__dirname));
+app.use(serve(__dirname, {
+  index: true
+}));
 
 http.createServer(app).listen(3000);
