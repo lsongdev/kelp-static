@@ -1,24 +1,25 @@
-## kelp-static ![npm](https://badge.fury.io/js/kelp-static.png)
+## express-static ![npm](https://badge.fury.io/js/express-static.png)
 
-serve static files for kelp
+> serve static files for express
 
 ### Installation
-
 ````
-$ npm install [-g] kelp-static --save
+$ npm install express-static --save
 ````
 
 ### Example
 ````javascript
-const http  = require('http');
-const kelp  = require('kelp');
-const serve = require('kelp-static');
+const express = require('express');
+const serve   = require('express-static');
 
-const app = kelp();
+const app = express();
 
-app.use(serve('./public'));
+app.use(serve(__dirname + '/public'));
 
-http.createServer(app).listen(3000);
+const server = app.listen(3000, function(){
+  console.log('server is running at %s', server.address().port);
+});
+
 ````
 
 ### Contributing
@@ -31,7 +32,7 @@ http.createServer(app).listen(3000);
 - Open a pull request, and enjoy <3
 
 ### MIT license
-Copyright (c) 2016 lsong
+Copyright (c) 2014 lsong
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the &quot;Software&quot;), to deal

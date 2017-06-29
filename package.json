@@ -1,19 +1,19 @@
 {
-  "name": "kelp-static",
+  "name": "express-static",
   "version": "1.2.2",
-  "description": "serve static files for kelp",
+  "description": "serve static files for express",
   "main": "index.js",
   "scripts": {
     "test": "node test/test.js"
   },
   "bin": {
-    "kelp-static": "bin/server.js"
+    "express-static": "bin/server.js"
   },
   "author": "lsong",
   "license": "MIT",
   "keywords": [
-    "kelp",
-    "static"
+    "express",
+    "express-static"
   ],
   "repository": {
     "type": "git",
