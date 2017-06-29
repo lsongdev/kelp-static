@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node test/test.js"
   },
-  "bin":{
+  "bin": {
     "kelp-static": "bin/server.js"
   },
   "author": "lsong",
@@ -28,6 +28,6 @@
     "kelp-logger": "*"
   },
   "dependencies": {
-    "mime": "*"
+    "mail2": "latest"
   }
 }

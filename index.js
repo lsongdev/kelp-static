@@ -1,18 +1,18 @@
 const fs   = require('fs');
 const url  = require('url');
 const path = require('path');
-const mime = require('mime');
+const mime = require('mail2/mime');
 /**
  * [exports description]
  * @param  {[type]} root    [description]
  * @param  {[type]} options [description]
  * @return {[type]}         [description]
  */
-module.exports = function KelpStatic(root, options){
-  options = options || {};
+module.exports = function(root, options){
   var defaults = {
     index: 'index.html'
   };
+  options = options || {};
   for(var k in options)
     defaults[ k ] = options[ k ];
   options = defaults;
@@ -24,18 +24,18 @@ module.exports = function KelpStatic(root, options){
    * @return {[type]}        [description]
    */
   return function(req, res, next){
-    var filename = decodeURIComponent(url.parse(req.url).pathname);
+    var pathname = url.parse(req.url).pathname;
+    var filename = path.join(path.resolve(root), pathname);
     if(filename.endsWith('/') && typeof options.index === 'string') 
       filename += options.index;
-    filename = path.join(path.resolve(root), filename);
     fs.stat(filename, function(err, stat){
       if(err) return next(err);
       if(stat.isDirectory()){
-        if(options.index === true)
-          res.setHeader('Content-Type', 'text/html');
-          return renderDirectory(filename, res.end);
-        res.writeHead(301, {
-          'Location': req.url + '/'
+        if(options.index === true){
+          return renderDirectory(root, filename, res);
+        }
+        res.writeHead(301, { 
+          'Location': pathname + '/' 
         });
         return res.end();
       }
@@ -44,7 +44,7 @@ module.exports = function KelpStatic(root, options){
         return res.end();
       }
       var type = mime.lookup(filename);
-      var charset = mime.charsets.lookup(type);
+      var charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
       res.setHeader('Last-Modified', stat.mtime);
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
@@ -58,8 +58,8 @@ module.exports = function KelpStatic(root, options){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-function renderDirectory(dir, callback){
-  var content = '', cwd = process.cwd();
+function renderDirectory(cwd, dir, res){
+  var content = '';
   content += '<h1>Index of '+ dir.replace(cwd, '') +'</h1>';
   content += '<hr />';
   fs.readdir(dir, function(err, files){
@@ -79,6 +79,7 @@ function renderDirectory(dir, callback){
     content += '</table>';
     content += '<hr/>';
     content += 'Powered by <a href="https://github.com/song940/kelp-static" >kelp-static</a>';
-    callback(content);
+    res.setHeader('Content-Type', 'text/html');
+    res.end(content);
   });
 }
