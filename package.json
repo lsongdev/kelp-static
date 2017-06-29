@@ -22,10 +22,9 @@
   "bugs": {
     "url": "https://github.com/song940/kelp-static/issues"
   },
-  "homepage": "https://github.com/song940/kelp-static#readme",
+  "homepage": "https://github.com/song940/kelp-static/tree/express",
   "devDependencies": {
-    "kelp": "*",
-    "kelp-logger": "*"
+    "express": "*"
   },
   "dependencies": {
     "mail2": "latest"

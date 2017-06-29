@@ -1,11 +1,9 @@
-const http = require('http');
-const kelp = require('kelp');
-const logs = require('kelp-logger');
-const serve= require('../');
+const http 	  = require('http');
+const express = require('express')
+const serve   = require('..');
 
-const app = kelp();
+const app = express();
 
-app.use(logs)
 app.use(serve(__dirname, {
   index: true
 }));
