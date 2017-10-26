@@ -16,6 +16,7 @@ module.exports = function(root, options){
   for(var k in options)
     defaults[ k ] = options[ k ];
   options = defaults;
+  root = path.resolve(root);
   /**
    * [function description]
    * @param  {[type]}   req  [description]
@@ -25,7 +26,8 @@ module.exports = function(root, options){
    */
   return function(req, res, next){
     var pathname = url.parse(req.url).pathname;
-    var filename = path.join(path.resolve(root), pathname);
+    var filename = path.join(root, pathname);
+    if(filename.indexOf(root) !== 0) return next();
     if(filename.endsWith('/') && typeof options.index === 'string') 
       filename += options.index;
     fs.stat(filename, function(err, stat){
