@@ -28,7 +28,7 @@ module.exports = function(root, options){
     var pathname = url.parse(req.url).pathname;
     var filename = path.join(root, pathname);
     if(filename.indexOf(root) !== 0) return next();
-    if(filename.endsWith('/') && typeof options.index === 'string') 
+    if(filename.endsWith('/') && typeof options.index === 'string')
       filename += options.index;
     fs.stat(filename, function(err, stat){
       if(err) return next(err);
@@ -36,8 +36,8 @@ module.exports = function(root, options){
         if(options.index === true){
           return renderDirectory(root, filename, res);
         }
-        res.writeHead(301, { 
-          'Location': pathname + '/' 
+        res.writeHead(301, {
+          'Location': pathname + '/'
         });
         return res.end();
       }
@@ -47,7 +47,7 @@ module.exports = function(root, options){
       }
       var type = mime.lookup(filename);
       var charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
-      res.setHeader('Last-Modified', stat.mtime);
+      res.setHeader('Last-Modified', new Date(stat.mtimeMs).toUTCString());
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
       fs.createReadStream(filename).pipe(res);
