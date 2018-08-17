@@ -45,6 +45,7 @@ module.exports = function(root, options){
         res.writeHead(304);
         return res.end();
       }
+      res.statusCode = 200;
       var type = mime.lookup(filename);
       var charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
       res.setHeader('Last-Modified', new Date(stat.mtimeMs).toUTCString());
