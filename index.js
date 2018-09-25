@@ -1,7 +1,7 @@
 const fs   = require('fs');
 const url  = require('url');
 const path = require('path');
-const mime = require('mail2/mime');
+const mime = require('mime2');
 /**
  * [exports description]
  * @param  {[type]} root    [description]
@@ -41,13 +41,14 @@ module.exports = function(root, options){
         });
         return res.end();
       }
-      if(new Date(req.headers['if-modified-since']) - stat.mtime == 0){
+      const mtime = new Date(stat.mtimeMs).toUTCString();
+      if(req.headers['if-modified-since'] === mtime){
         res.writeHead(304);
         return res.end();
       }
       var type = mime.lookup(filename);
       var charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
-      res.setHeader('Last-Modified', new Date(stat.mtimeMs).toUTCString());
+      res.setHeader('Last-Modified', mtime);
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
       fs.createReadStream(filename).pipe(res);
