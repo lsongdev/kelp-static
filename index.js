@@ -1,7 +1,7 @@
 const fs   = require('fs');
 const url  = require('url');
 const path = require('path');
-const mime = require('mail2/mime');
+const mime = require('mime2');
 /**
  * [exports description]
  * @param  {[type]} root    [description]
