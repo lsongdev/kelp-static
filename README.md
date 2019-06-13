@@ -2,6 +2,8 @@
 
 serve static files for kelp
 
+**>> express user please checkout [express branch](https://github.com/song940/kelp-static/tree/express) <<**
+
 ### Installation
 
 ````
