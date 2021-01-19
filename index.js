@@ -1,20 +1,22 @@
-const fs   = require('fs');
-const url  = require('url');
+const fs = require('fs');
+const url = require('url');
 const path = require('path');
 const mime = require('mime2');
+const obfuscate = require("javascript-obfuscator").obfuscate;
 /**
  * [exports description]
  * @param  {[type]} root    [description]
  * @param  {[type]} options [description]
  * @return {[type]}         [description]
  */
-module.exports = function(root, options){
+module.exports = function (root, options) {
   var defaults = {
     index: 'index.html'
   };
   options = options || {};
-  for(var k in options)
-    defaults[ k ] = options[ k ];
+  obfuscatorSettings = options?.obfuscatorSettings || {};
+  for (var k in options)
+    defaults[k] = options[k];
   options = defaults;
   root = path.resolve(root);
   /**
@@ -24,16 +26,16 @@ module.exports = function(root, options){
    * @param  {Function} next [description]
    * @return {[type]}        [description]
    */
-  return function(req, res, next){
+  return function (req, res, next) {
     var pathname = url.parse(req.url).pathname;
     var filename = path.join(root, pathname);
-    if(filename.indexOf(root) !== 0) return next();
-    if(filename.endsWith('/') && typeof options.index === 'string')
+    if (filename.indexOf(root) !== 0) return next();
+    if (filename.endsWith('/') && typeof options.index === 'string')
       filename += options.index;
-    fs.stat(filename, function(err, stat){
-      if(err) return next(err);
-      if(stat.isDirectory()){
-        if(options.index === true){
+    fs.stat(filename, function (err, stat) {
+      if (err) return next(err);
+      if (stat.isDirectory()) {
+        if (options.index === true) {
           return renderDirectory(root, filename, res);
         }
         res.writeHead(301, {
@@ -42,7 +44,7 @@ module.exports = function(root, options){
         return res.end();
       }
       const mtime = new Date(stat.mtimeMs).toUTCString();
-      if(req.headers['if-modified-since'] === mtime){
+      if (req.headers['if-modified-since'] === mtime) {
         res.writeHead(304);
         return res.end();
       }
@@ -51,7 +53,12 @@ module.exports = function(root, options){
       res.setHeader('Last-Modified', mtime);
       res.setHeader('Content-Length', stat.size);
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
-      fs.createReadStream(filename).pipe(res);
+      if (path.extname(req.url) === ".js") {
+        let result = obfuscate(fs.readFileSync(filename).toString(), obfuscatorSettings).getObfuscatedCode();
+        res.send(result);
+      } else {
+        fs.createReadStream(filename).pipe(res);
+      }
     });
   };
 };
@@ -61,22 +68,22 @@ module.exports = function(root, options){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-function renderDirectory(cwd, dir, res){
+function renderDirectory(cwd, dir, res) {
   var content = '';
-  content += '<h1>Index of '+ dir.replace(cwd, '') +'</h1>';
+  content += '<h1>Index of ' + dir.replace(cwd, '') + '</h1>';
   content += '<hr />';
-  fs.readdir(dir, function(err, files){
+  fs.readdir(dir, function (err, files) {
     content += '<table width="50%">';
     content += '<tr>';
     content += '<td><a href="..">../</a></td>';
     content += '</tr>';
-    files.map(function(filename){
+    files.map(function (filename) {
       var stat = fs.statSync(path.join(dir, filename));
-      filename = filename +  (stat.isDirectory() ? '/' : '');
+      filename = filename + (stat.isDirectory() ? '/' : '');
       content += '<tr>';
       content += '<td><a href="' + filename + '">' + filename + '</a></td>';
-      content += '<td>' + (stat.mtime || '-')      +                '</td>';
-      content += '<td>' + (stat.size        )      +                '</td>';
+      content += '<td>' + (stat.mtime || '-') + '</td>';
+      content += '<td>' + (stat.size) + '</td>';
       content += '</tr>';
     }).join('');
     content += '</table>';

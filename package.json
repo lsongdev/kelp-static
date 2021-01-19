@@ -27,6 +27,7 @@
     "express": "*"
   },
   "dependencies": {
+    "javascript-obfuscator": "^2.10.2",
     "mime2": "latest"
   }
 }
