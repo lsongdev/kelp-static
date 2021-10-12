@@ -8,14 +8,11 @@ const mime = require('mime2');
  * @param  {[type]} options [description]
  * @return {[type]}         [description]
  */
-module.exports = function(root, options){
-  var defaults = {
+module.exports = function(root = '.', options){
+  const defaults = {
     index: 'index.html'
   };
-  options = options || {};
-  for(var k in options)
-    defaults[ k ] = options[ k ];
-  options = defaults;
+  options = Object.assign({}, defaults, options);
   root = path.resolve(root);
   /**
    * [function description]
@@ -25,8 +22,8 @@ module.exports = function(root, options){
    * @return {[type]}        [description]
    */
   return function(req, res, next){
-    var pathname = url.parse(req.url).pathname;
-    var filename = path.join(root, pathname);
+    const { pathname } = url.parse(req.url);
+    let filename = path.join(root, pathname);
     if(filename.indexOf(root) !== 0) return next();
     if(filename.endsWith('/') && typeof options.index === 'string')
       filename += options.index;
