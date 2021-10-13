@@ -1,19 +1,28 @@
-const fs   = require('fs');
-const url  = require('url');
-const path = require('path');
+const url = require('url');
 const mime = require('mime2');
+const { resolve, join } = require('path');
+const fs = require('fs');
+
+const { stat } = fs.promises;
+
+const call = p =>
+  p.then(r => [null, r], e => [e]);
+
 /**
  * [exports description]
  * @param  {[type]} root    [description]
  * @param  {[type]} options [description]
  * @return {[type]}         [description]
  */
-module.exports = function(root = '.', options){
+module.exports = (root = '.', options) => {
+  root = resolve(root);
   const defaults = {
-    index: 'index.html'
+    index: 'index.html',
+    listDirectory: false,
   };
-  options = Object.assign({}, defaults, options);
-  root = path.resolve(root);
+  const {
+    index, listDirectory,
+  } = Object.assign({}, defaults, options);
   /**
    * [function description]
    * @param  {[type]}   req  [description]
@@ -21,36 +30,37 @@ module.exports = function(root = '.', options){
    * @param  {Function} next [description]
    * @return {[type]}        [description]
    */
-  return function(req, res, next){
+  return async (req, res, next) => {
     const { pathname } = url.parse(req.url);
-    let filename = path.join(root, pathname);
-    if(filename.indexOf(root) !== 0) return next();
-    if(filename.endsWith('/') && typeof options.index === 'string')
-      filename += options.index;
-    fs.stat(filename, function(err, stat){
-      if(err) return next(err);
-      if(stat.isDirectory()){
-        if(options.index === true){
-          return renderDirectory(root, filename, res);
-        }
-        res.writeHead(301, {
-          'Location': pathname + '/'
-        });
-        return res.end();
-      }
-      const mtime = new Date(stat.mtimeMs).toUTCString();
-      if(req.headers['if-modified-since'] === mtime){
+    let filename = join(root, pathname);
+    if (filename.indexOf(root) !== 0) return next();
+    const sendFile = async (filename, s) => {
+      const mtime = new Date(s.mtimeMs).toUTCString();
+      if (req.headers['if-modified-since'] === mtime) {
         res.writeHead(304);
         return res.end();
       }
       res.statusCode = 200;
-      var type = mime.lookup(filename);
-      var charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
+      const type = mime.lookup(filename);
+      const charset = /^text\/|^application\/(javascript|json)/.test(type) ? 'UTF-8' : false;
       res.setHeader('Last-Modified', mtime);
-      res.setHeader('Content-Length', stat.size);
+      res.setHeader('Content-Length', s.size);
       res.setHeader('Content-Type', type + (charset ? '; charset=' + charset : ''));
       fs.createReadStream(filename).pipe(res);
-    });
+    };
+    const [err, s] = await call(stat(filename));
+    if (err) return next(err);
+    if (s.isDirectory()) {
+      if (index) {
+        const a = join(filename, index)
+        const [err, b] = await call(stat(a));
+        if (!err) return sendFile(a, b);
+      };
+      if (listDirectory === true) 
+        return renderDirectory(root, filename, res);
+      return next();
+    }
+    return sendFile(filename, s);
   };
 };
 /**
@@ -59,24 +69,30 @@ module.exports = function(root = '.', options){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-function renderDirectory(cwd, dir, res){
+async function renderDirectory(cwd, dir, res) {
   var content = '';
-  content += '<h1>Index of '+ dir.replace(cwd, '') +'</h1>';
+  content += '<h1>Index of ' + dir.replace(cwd, '') + '</h1>';
   content += '<hr />';
-  fs.readdir(dir, function(err, files){
-    content += '<table width="50%">';
+  fs.readdir(dir, async (err, files) => {
+    if (err) return;
+    content += '<table style="min-width: 50%;" >';
+    content += '<tr>';
+    content += '<th style="text-align: left;" >name</th>';
+    content += '<th>date</th>';
+    content += '<th>size</th>';
+    content += '</tr>';
     content += '<tr>';
     content += '<td><a href="..">../</a></td>';
     content += '</tr>';
-    files.map(function(filename){
-      var stat = fs.statSync(path.join(dir, filename));
-      filename = filename +  (stat.isDirectory() ? '/' : '');
+    for (let filename of files) {
+      const s = await stat(join(dir, filename));
+      filename = filename + (s.isDirectory() ? '/' : '');
       content += '<tr>';
       content += '<td><a href="' + filename + '">' + filename + '</a></td>';
-      content += '<td>' + (stat.mtime || '-')      +                '</td>';
-      content += '<td>' + (stat.size        )      +                '</td>';
+      content += '<td style="text-align: center;" >' + (s.mtime || '-') + '</td>';
+      content += '<td style="text-align: center;" >' + (s.size) + '</td>';
       content += '</tr>';
-    }).join('');
+    }
     content += '</table>';
     content += '<hr/>';
     content += 'Powered by <a href="https://github.com/song940/kelp-static" >kelp-static</a>';
